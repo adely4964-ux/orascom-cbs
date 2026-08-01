@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a1628">
+<title>Orascom Construction — CBS-560 IT Equipment QR Directory</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" defer></script>
+<style>
+  :root{
+    color-scheme: dark;
+    --navy-950:#0a1628; --navy-900:#0f1e33; --panel:#17233d; --line:#2a3c5c;
+    --accent:#3d8bff; --accent-soft:#7fb0ff; --text:#eaf1fb; --text-dim:#8fa3c4;
+    --good:#3ecf8e; --warn:#f5a623; --bad:#e05656;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:'Segoe UI', Tahoma, Arial, sans-serif;
+    background:linear-gradient(180deg, var(--navy-950), var(--navy-900) 60%); color:var(--text);
+    padding:32px 20px 60px; }
+  header{ max-width:1200px; margin:0 auto 22px; border-bottom:1px solid var(--line); padding-bottom:20px; }
+  header h1{ margin:0 0 6px; font-size:1.6rem; }
+  header p{ margin:0 0 16px; color:var(--text-dim); font-size:0.92rem; }
+  .badge{ display:inline-block; background:rgba(61,139,255,0.15); color:var(--accent-soft);
+    border:1px solid rgba(61,139,255,0.4); border-radius:999px; padding:3px 12px;
+    font-size:0.75rem; margin-bottom:10px; letter-spacing:0.04em; }
+  #search{ width:100%; max-width:420px; padding:10px 14px; border-radius:8px;
+    border:1px solid var(--line); background:var(--panel); color:var(--text); font-size:0.95rem; outline:none; }
+  #search:focus{ border-color:var(--accent); }
+  #count{ color:var(--text-dim); font-size:0.82rem; margin-top:8px; }
+  .section-title{ max-width:1200px; margin:30px auto 10px; font-size:1.15rem; color:var(--accent-soft);
+    border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .grid{ max-width:1200px; margin:0 auto 0; display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); gap:16px; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:18px; display:flex; flex-direction:column; gap:12px; }
+  .pc-name{ font-size:1.0rem; font-weight:600; }
+  .type-tag{ display:inline-block; font-size:0.68rem; color:var(--accent-soft);
+    background:rgba(61,139,255,0.12); border-radius:6px; padding:2px 8px; margin-inline-start:6px; }
+  .status-dot{ width:8px; height:8px; border-radius:50%; background:var(--good); display:inline-block; margin-inline-end:6px; }
+  .status-dot.warn{ background:var(--warn); }
+  dl{ margin:0; display:grid; grid-template-columns:auto 1fr; row-gap:5px; column-gap:10px; font-size:0.84rem; }
+  dt{ color:var(--text-dim); }
+  dd{ margin:0; color:var(--text); text-align:right; }
+  .qr-wrap{ align-self:center; background:#ffffff; padding:8px; border-radius:8px; min-height:120px; min-width:120px; display:flex; align-items:center; justify-content:center; }
+  .hint{ text-align:center; color:var(--text-dim); font-size:0.72rem; }
+  footer{ max-width:1200px; margin:36px auto 0; color:var(--text-dim); font-size:0.82rem;
+    line-height:1.6; border-top:1px solid var(--line); padding-top:16px; }
+  footer b{ color:var(--text); }
+  footer .legend span{ display:inline-block; margin-inline-end:16px; }
+  #load-error{ display:none; max-width:1200px; margin:0 auto 16px; background:rgba(245,166,35,0.12);
+    border:1px solid rgba(245,166,35,0.4); color:var(--warn); padding:10px 14px; border-radius:8px; font-size:0.85rem; }
+  #no-results{ max-width:1200px; margin:20px auto; color:var(--text-dim); text-align:center; display:none; }
+
+  #login-screen{ position:fixed; inset:0; background:linear-gradient(180deg, var(--navy-950), var(--navy-900) 60%);
+    display:flex; align-items:center; justify-content:center; z-index:100; }
+  #login-box{ background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:32px; width:100%; max-width:340px; text-align:center; }
+  #login-box h2{ margin:0 0 6px; font-size:1.15rem; }
+  #login-box p{ margin:0 0 18px; color:var(--text-dim); font-size:0.85rem; }
+  #login-box input{ width:100%; padding:10px 14px; border-radius:8px; border:1px solid var(--line);
+    background:var(--navy-950); color:var(--text); font-size:0.95rem; outline:none; margin-bottom:10px; }
+  #login-box input:focus{ border-color:var(--accent); }
+  #login-box button{ width:100%; padding:10px 14px; border-radius:8px; border:none;
+    background:var(--accent); color:#fff; font-size:0.95rem; cursor:pointer; }
+  #login-box button:hover{ background:var(--accent-soft); }
+  #login-error{ color:var(--bad); font-size:0.8rem; margin-top:8px; display:none; }
+  #main-content{ display:none; }
+  .card.highlight{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent), 0 0 20px rgba(61,139,255,0.4); }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div id="login-box">
+    <h2>Orascom Construction — CBS-560</h2>
+    <p>Enter the password to view the IT equipment directory.</p>
+    <input type="password" id="password-input" placeholder="Password" onkeydown="if(event.key==='Enter') checkPassword()">
+    <button onclick="checkPassword()">Unlock</button>
+    <div id="login-error">Wrong password — try again.</div>
+  </div>
+</div>
+
+<div id="main-content">
+<header>
+  <span class="badge">ORASCOM CONSTRUCTION — CBS-560 — 31 DEVICES</span>
+  <h1>Orascom Construction — CBS-560 IT Assets QR Lookup</h1>
+  <p>Scan any code with a phone camera to open this page and jump straight to that device's record. Requires internet and the password.</p>
+  <input type="text" id="search" placeholder="Search by model, serial, MAC, or location...">
+  <div id="count"></div>
+</header>
+
+<div id="load-error">⚠ The QR library didn't load (no internet connection when this page opened). Reconnect and refresh the page.</div>
+
+<div id="content"></div>
+<div id="no-results">No devices match your search.</div>
+
+<footer>
+  <b>How this works:</b> each QR code links to this page with that device's ID in the URL — scanning opens the page, asks for the password, then jumps straight to that device.<br><br>
+  <b class="legend">
+    <span style="color:var(--good)">● Complete</span> = serial number (and MAC, if applicable) recorded.
+    <span style="color:var(--warn)">● Incomplete</span> = serial number and/or MAC not recorded — verify on the unit directly.
+  </b><br><br>
+  <b>Next step:</b> print these as small labels and stick them on each device.
+</footer>
+</div>
+
+<script>
+const SITE_PASSWORD = "Orascom560";
+
+// Live hosting URL (GitHub Pages)
+const BASE_URL = "https://adely4964-ux.github.io/orascom-cbs";
+
+function checkPassword() {
+  const input = document.getElementById('password-input');
+  const error = document.getElementById('login-error');
+  if (input.value === SITE_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    goToLinkedDevice();
+  } else {
+    error.style.display = 'block';
+    input.value = '';
+    input.focus();
+  }
+}
+
+function goToLinkedDevice() {
+  const hash = window.location.hash.replace('#', '');
+  if (!hash) return;
+  setTimeout(() => {
+    const target = document.getElementById(hash);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add('highlight');
+    }
+  }, 100);
+}
+</script>
+
+<script>
+const devices = [
+  // Racks
+  {id:1, category:"Racks", brand:"", model:"RACK 42U", serial:"N/A", mac:"", location:"Orabi", note:"IT"},
+  {id:2, category:"Racks", brand:"", model:"RACK 22U", serial:"N/A", mac:"", location:"Orabi", note:"IT"},
+  {id:3, category:"Racks", brand:"", model:"RACK 12U", serial:"N/A", mac:"", location:"Sphinx", note:"IT"},
+  {id:4, category:"Racks", brand:"", model:"RACK 22U", serial:"N/A", mac:"", location:"Sphinx", note:"IT"},
+
+  // Routers
+  {id:5, category:"Routers", brand:"FORTINET", model:"FortiGate 91G", serial:"FGT91GTK23007069", mac:"78:18:FC:57:DC:84", location:"Sphinx", note:"Firewall - IT"},
+  {id:6, category:"Routers", brand:"FORTINET", model:"FortiGate 61F", serial:"FGT61FTK23025294", mac:"74:78:A6:69:86:F6", location:"Site", note:"Firewall - IT"},
+
+  // Switch
+  {id:7, category:"Switch", brand:"CISCO", model:"CBS350-24-4G", serial:"FOC2650Y1LV", mac:"", ip:"10.201.220.200", location:"Orabi", note:"IT - SW-Main (Core)"},
+  {id:8, category:"Switch", brand:"CISCO", model:"CBS350-24-4G", serial:"FOC2650Y2MN", mac:"", ip:"10.201.220.201", location:"Orabi", note:"IT - SW-1"},
+  {id:9, category:"Switch", brand:"CISCO", model:"CBS350-24-4G", serial:"FOC2650Y3TY", mac:"", ip:"10.201.220.202", location:"Orabi", note:"IT - SW-2"},
+  {id:10, category:"Switch", brand:"HP", model:"Aruba 1930 24", serial:"CN38LB31NC", mac:"", location:"Sphinx", note:"IT"},
+
+  // Wireless Access Points
+  {id:11, category:"Wireless Access Points", brand:"RUCKUS", model:"R320", serial:"172009002490", mac:"", location:"Orabi", note:"Site"},
+  {id:12, category:"Wireless Access Points", brand:"RUCKUS", model:"R320", serial:"172009002475", mac:"", location:"Orabi", note:"Site"},
+  {id:13, category:"Wireless Access Points", brand:"RUCKUS", model:"R320", serial:"172009002426", mac:"", location:"Orabi", note:"Site"},
+  {id:14, category:"Wireless Access Points", brand:"RUCKUS", model:"R320", serial:"172009002389", mac:"", location:"Orabi", note:"Site"},
+  {id:15, category:"Wireless Access Points", brand:"RUCKUS", model:"R320", serial:"172009002461", mac:"", location:"Orabi", note:"Site"},
+  {id:16, category:"Wireless Access Points", brand:"NetGear", model:"WNAP320", serial:"N/A", mac:"", location:"Orabi", note:"Meeting Room"},
+  {id:17, category:"Wireless Access Points", brand:"NetGear", model:"WNAP320", serial:"N/A", mac:"", location:"Orabi", note:"EHAF"},
+  {id:18, category:"Wireless Access Points", brand:"NetGear", model:"WNAP320", serial:"N/A", mac:"", location:"Orabi", note:"Thales"},
+  {id:19, category:"Wireless Access Points", brand:"HP", model:"Aruba AP22", serial:"CNPZKPPMJI", mac:"", location:"Sphinx", note:"Engineering Office"},
+  {id:20, category:"Wireless Access Points", brand:"HP", model:"Aruba AP22", serial:"CNPZKPPMJJ", mac:"", location:"Sphinx", note:"Engineering Office"},
+  {id:21, category:"Wireless Access Points", brand:"HP", model:"Aruba AP22", serial:"CNPZKPPMFC", mac:"", location:"Sphinx", note:"Engineering Office"},
+  {id:22, category:"Wireless Access Points", brand:"HP", model:"Aruba AP22", serial:"CNPZKPPMHV", mac:"", location:"Sphinx", note:"Engineering Office"},
+
+  // Cisco IP Phones
+  {id:23, category:"Cisco IP Phone", brand:"Yeastar", model:"S320", serial:"3691D3781688", mac:"", location:"Orabi", note:"VOIP PBX"},
+  {id:24, category:"Cisco IP Phone", brand:"Yeastar", model:"SIP-T31P", serial:"201043G010004366", mac:"", location:"Orabi", note:"IP Phone - Peter Bahgat"},
+  {id:25, category:"Cisco IP Phone", brand:"Yeastar", model:"SIP-T31P", serial:"201043G010002077", mac:"", location:"Orabi", note:"IP Phone - Saber Rizk"},
+  {id:26, category:"Cisco IP Phone", brand:"Yeastar", model:"SIP-T31P", serial:"201043G010000722", mac:"", location:"Orabi", note:"IP Phone - Ahmed Gamal"},
+  {id:27, category:"Cisco IP Phone", brand:"Yeastar", model:"SIP-T31P", serial:"201043G0100003263", mac:"", location:"Orabi", note:"IP Phone - Buffet"},
+
+  // Projectors & Video Conference
+  {id:28, category:"Projectors & Video Conference", brand:"Logitech", model:"MEETUP", serial:"2341LZ512R98", mac:"", location:"Orabi", note:"Camera and Speaker Unit - Meeting Room"},
+  {id:29, category:"Projectors & Video Conference", brand:"Epson", model:"EB-X05", serial:"X4GP9900192", mac:"", location:"Orabi", note:"Projector - Meeting Room"},
+
+  // Docking Station
+  {id:30, category:"Docking Station", brand:"DELL", model:"Docking Type C", serial:"55MRH74", mac:"", location:"Orabi", note:"Peter Bahgat"},
+  {id:31, category:"Docking Station", brand:"HP", model:"Docking Type C", serial:"N/A", mac:"", location:"Orabi", note:"Ahmed Jamal"}
+];
+
+const content = document.getElementById('content');
+const search = document.getElementById('search');
+const countEl = document.getElementById('count');
+const loadError = document.getElementById('load-error');
+const noResults = document.getElementById('no-results');
+
+window.addEventListener('load', () => {
+  if (typeof QRious === 'undefined') {
+    loadError.style.display = 'block';
+  }
+  render(devices);
+});
+
+function render(list) {
+  content.innerHTML = '';
+  let total = 0;
+  const categories = [...new Set(devices.map(d => d.category))];
+
+  categories.forEach(cat => {
+    const items = list.filter(d => d.category === cat);
+    if (items.length === 0) return;
+
+    const sectionTitle = document.createElement('div');
+    sectionTitle.className = 'section-title';
+    sectionTitle.textContent = cat;
+    content.appendChild(sectionTitle);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    content.appendChild(grid);
+
+    items.forEach((d) => {
+      total++;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = `device-${d.id}`;
+      const isIncomplete = d.serial === 'N/A' || d.serial === '';
+      const canvasId = `qr-canvas-${total}`;
+      const nameLabel = (d.brand ? d.brand + ' ' : '') + d.model;
+
+      const qrText = `${BASE_URL}#device-${d.id}`;
+
+      card.innerHTML = `
+        <div class="pc-name"><span class="status-dot ${isIncomplete ? 'warn' : ''}"></span>${nameLabel}<span class="type-tag">${d.location}</span></div>
+        <dl>
+          <dt>Serial No.</dt><dd>${d.serial}</dd>
+          ${d.mac ? `<dt>MAC Address</dt><dd>${d.mac}</dd>` : ''}
+          ${d.ip ? `<dt>IP Address</dt><dd>${d.ip}</dd>` : ''}
+          <dt>Location</dt><dd>${d.location}</dd>
+          <dt>Note</dt><dd>${d.note || 'N/A'}</dd>
+        </dl>
+        <div class="qr-wrap"><canvas id="${canvasId}"></canvas></div>
+        <div class="hint">Scan to open this device's record</div>
+      `;
+      grid.appendChild(card);
+
+      if (typeof QRious !== 'undefined') {
+        const canvas = document.getElementById(canvasId);
+        new QRious({ element: canvas, value: qrText, size: 120, background: '#ffffff', foreground: '#0a1628' });
+      }
+    });
+  });
+
+  countEl.textContent = total + ' device(s) shown';
+  noResults.style.display = total === 0 ? 'block' : 'none';
+}
+
+search.addEventListener('input', () => {
+  const q = search.value.trim().toLowerCase();
+  const filtered = devices.filter(d =>
+    d.model.toLowerCase().includes(q) ||
+    d.brand.toLowerCase().includes(q) ||
+    d.serial.toLowerCase().includes(q) ||
+    d.mac.toLowerCase().includes(q) ||
+    (d.ip || '').toLowerCase().includes(q) ||
+    d.location.toLowerCase().includes(q) ||
+    d.note.toLowerCase().includes(q)
+  );
+  render(filtered);
+});
+</script>
+
+</body>
+</html>
